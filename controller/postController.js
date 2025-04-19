@@ -2,7 +2,22 @@ const prisma = require("../models/user.js");
 //get all posts
 exports.getAllPost = async(req,res)=>{
     try{
-        const posts= await prisma.post.findMany();
+        const posts= await prisma.post.findMany({
+            include:{
+                comments:{
+                    include:{
+                        user:{
+                            select:{
+                                name:true,
+                            },
+                        },
+                    },
+                },
+            },
+            orderBy:{
+                id:"desc",
+            },
+        });
         return res.status(201).json(posts);
     }catch(err){
         console.error(err);

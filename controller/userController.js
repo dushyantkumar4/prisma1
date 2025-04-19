@@ -2,8 +2,20 @@ const prisma = require("../models/user.js");
 //show all users
 exports.getUsers = async(req,res)=>{
     try{
-        const user=await prisma.user.findMany();
-        res.json(user);
+        const user=await prisma.user.findMany({
+           select:{
+            id:true,
+            name:true,
+            email:true,
+            _count:{
+                select:{
+                    posts:true,
+                    comments:true,
+                },
+            },
+           },
+        });
+        res.json({status:200,data:user});
     }catch(error){
         res.status(500).json({error:"failed to fetch user data"})
     }
