@@ -3,6 +3,7 @@ const router = express.Router();
 const postController = require("../controller/postController.js");
 
 router.get("/",postController.getAllPost);
+router.get("/search",postController.searchPost);
 router.post("/",postController.createPost);
 router.get("/:id",postController.getPost);
 router.put("/:id",postController.updatePost);

@@ -8,9 +8,9 @@ exports.getAllComments= async(req,res)=>{
                 post:{
                     include:{
                         user:true,
-                    }
-                }
-            }
+                    },
+                },
+            },
         });
         return res.json({status:200,data:comment}); 
     }catch(err){
@@ -31,9 +31,9 @@ exports.postComment = async(req,res)=>{
             data:{
                 comment_count:{
                     increment:1
-                }
-            }
-        })
+                },
+            },
+        });
         const newComment = await prisma.comment.create({
             data:{
                 post_id:Number(post_id),
@@ -87,22 +87,27 @@ exports.updateComment = async(req,res)=>{
 exports.deleteComment = async(req,res)=>{
     const commentId= req.params.id;
     try{
-        // await prisma.comment.update({
-        //     where:{
-        //         id:Number(post_id)
-        //     },
-        //     data:{
-        //         comment_count:{
-        //             decrement:1
-        //         }
-        //     }
-        // })
+        const existingComment = await prisma.comment.findUnique({
+            where:{id:commentId},
+            select:{post_id:true}
+        });
+        if(!existingComment){
+            return res.status(404).json({msg:"comment not found"});
+        }
         await prisma.comment.delete({
             where:{
                 id:commentId
             }
         });
-        return res.json({status:200,msg:"comment deleted"});
+        await prisma.post.update({
+            where:{id:existingComment.post_id},
+            data:{
+                comment_count:{
+                    decrement:1,
+                },
+            },
+        })
+        return res.status(200).json({msg:"comment deleted"});
     }catch(err){
         console.error(err);
         return res.status(500).json({message:"can't delte the comment"});

@@ -1,8 +1,16 @@
 const prisma = require("../models/user.js");
 //show all users
 exports.getUsers = async(req,res)=>{
+    let page = Number(req.query.page)||1;
+    let limit = Number(req.query.limit)||1;
+    const skip = (page-1)*limit;
+    if(page<=0)page=1;
+    if(limit<=0 || limit >100)limit=1;
+
     try{
         const user=await prisma.user.findMany({
+            skip:skip,
+            take:limit,
            select:{
             id:true,
             name:true,
@@ -15,7 +23,13 @@ exports.getUsers = async(req,res)=>{
             },
            },
         });
-        res.json({status:200,data:user});
+        const totalUser = await prisma.user.count();
+        const totalPage = Math.ceil(totalUser/limit);
+        return res.json({status:200,data:user,meta:{
+            totalPage,
+            currentPage:page,
+            limit:limit,
+        }});
     }catch(error){
         res.status(500).json({error:"failed to fetch user data"})
     }
